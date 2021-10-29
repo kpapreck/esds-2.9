@@ -1,0 +1,46 @@
+---
+- hosts: localhost
+  collections:
+    - netapp.elementsw
+
+  vars_files:
+  - '/root/.ansible/roles/nar_solidfire_sds_upgrade/defaults/main.yml'
+
+  vars:
+   id: "1"
+   upgrade_node_name: eSDS-vNode8
+   upgrade_node_MIP: 10.193.172.38
+   sf_cluster_error: False
+   sf_node_ids: None
+
+  tasks:
+    - name: "Ensure we prepare some global variables"
+      set_fact:
+        sf_node_ids: []
+        sf_upgraded: []
+        sf_already_upgraded: []
+        sf_node_id_name_map: {}
+        sf_installed_pkg_ver: "unknown"
+        sf_new_pkg_ver: "unknown"
+        sf_final_status: "unknown"
+      run_once: False
+
+    - name: "Retrieve installed package info again for {{ sf_upgrade_node }}/{{ sf_upgrade_node_MIP }}"
+      include_tasks: tasks/node-info.yml
+
+    - name: Ensure we calculate max attempts for EnableMaintenanceMode and DisableMaintenanceMode
+      set_fact:
+        sds_poll_max_maint_enable: "{{ (sds_poll_duration_maint_enable|int / sds_poll_interval_maint_enable|int)|int }}"
+        sds_poll_max_maint_disable: "{{ (sds_poll_duration_maint_disable|int / sds_poll_interval_maint_disable|int)|int }}"
+        sf_in_maintenance_mode: True
+
+    - name: "Load DisableMaintenanceMode on {{ upgrade_node_name }}/{{ upgrade_node_MIP }} if the upgrade has been performed"
+      include_tasks: tasks/sds-node-maint-disable.yml
+      vars:
+        target_name: "{{ upgrade_node_name }}"
+        target_MIP: "{{ upgrade_node_MIP }}"
+        target_SIP: "{{ upgrade_node_name|sf_get_node_info(sf_cluster_node_data, 'sip') }}"
+        target_id: "{{ sf_node_ids[target_SIP] }}"
+        attempt_count: "{{ item }}"
+      when: sf_in_maintenance_mode|bool
+      with_sequence: count="{{ sds_poll_max_maint_disable|int }}"

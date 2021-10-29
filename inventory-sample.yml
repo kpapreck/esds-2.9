@@ -1,0 +1,65 @@
+vNode:
+ hosts:
+   host5:
+      ansible_host: 10.193.172.35
+      MIP: 10.193.172.35
+      SIP: 10.193.171.137
+      Hostname: eSDS-vNode5
+
+   host6:
+      ansible_host: 10.193.172.36
+      MIP: 10.193.172.36
+      SIP: 10.193.171.138
+      Hostname: eSDS-vNode6
+
+   host7:
+      ansible_host: 10.193.172.37
+      MIP: 10.193.172.37
+      SIP: 10.193.171.139
+      Hostname: eSDS-vNode7
+
+   host8:
+      ansible_host: 10.193.172.38
+      MIP: 10.193.172.38
+      SIP: 10.193.171.140
+      Hostname: eSDS-vNode8
+
+# Common variables
+ vars:
+      storage_devices:
+      - /dev/sdb
+      - /dev/sdc
+      - /dev/sdd
+      - /dev/sde
+      - /dev/sdf
+      - /dev/sdg
+      - /dev/sdh
+      cache_devices:
+      - /dev/sdi
+all:
+ vars:
+# Common variables
+      become: True
+      ansible_connection: ssh
+      ansible_ssh_common_args: -o StrictHostKeyChecking=no
+
+# Unistall Cluster variables
+      sf_allow_uninstall_active_cluster: True
+# Upgrade Cluster Variables
+      sf_mgmt_virt_ip: "{{ MVIP }}"
+      sf_allow_cluster_subset_upgrade: True
+# eSDS Installation variables
+      mgmt_iface: "team1G"
+      storage_iface: "team10G"
+      #solidfire_element_rpm: http://10.193.172.9/iso/eSDS/solidfire-element-12.2.0.777-1.el7.x86_64.rpm
+      solidfire_element_rpm: http://10.193.172.9/iso/eSDS/solidfire-element-12.3.0.958-1.el7.x86_64.rpm
+#      solidfire_element_rpm: http://10.193.172.9/iso/eSDS/solidfire-element-12.5.0.467-1.el7.x86_64.rpm
+# Cluster Configuration variables
+      MVIP: 10.193.172.39
+      SVIP: 10.193.171.141
+      sf_cluster_name: vNode-eSDS
+      sf_serialnumber: "abc456789"
+      sf_ordernumber: "abc456789"
+      sf_cluster_admin_username: admin
+      sf_cluster_admin_passwd: password
+      sf_validate_certs: false
